@@ -7,7 +7,7 @@ It contains the definition of routes and views for the application.
 import mysql.connector
 import json
 import os
-from item import Item, production_names, to_json
+from item import Item, production_names, to_json, units
 from flask import Flask, render_template, request, session
 app = Flask(__name__)
 
@@ -31,7 +31,11 @@ def make_tree_view(item):
             output += "<input type='submit' value='<' />"
             output += "</form>"
 
-    output += f"{item.amount} {item.name}"
+    unit = item.made_in
+    if unit not in units:
+        unit = "default"
+
+    output += units[unit].format(item.name, item.amount)
 
     if needs_form:
             output += "<form method='POST' class='right'>"
@@ -42,7 +46,7 @@ def make_tree_view(item):
 
     output += "</span>"
 
-    if item.made_in != "natural":
+    if item.made_in in production_names:
         output += "<ul><li><code>"
         if production_names.get(item.made_in) != None:
             output += f"{production_names[item.made_in]}"
@@ -53,7 +57,8 @@ def make_tree_view(item):
         output += " can be found naturally."
 
     output += item.get_formatted()
-    if item.made_in != "natural":
+    print(item.get_formatted())
+    if item.made_in in production_names:
         output += "</li></ul>"
     output += "</li></ul>"
 

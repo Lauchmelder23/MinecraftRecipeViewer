@@ -2,10 +2,16 @@ import mysql.connector
 import json
 import math
 
+units = {
+    "default" : "{0} x{1}",
+    "fluid"   : "{0} {1}mB"
+    }
+
 production_names = {
     "craftingtable"     : "Crafting",
     "furnace"           : "Smelting",
-    "stonecutter"       : "Stonecutting"
+    "filling"           : "Filling",
+    "brewingstation"    : "Brewing"
     }
 
 class Item(object):
@@ -85,7 +91,7 @@ class Item(object):
         recipe = self.possibilities[self.choice]
         self.made_in = recipe["via"]
         self.components = []
-        if self.made_in == "natural":
+        if self.made_in not in production_names:
             return
 
         self.creates = recipe["amount"]
@@ -111,7 +117,11 @@ class Item(object):
                 output += "<input type='submit' value='<' />"
                 output += "</form>"
 
-            output += f"{component.amount} {component.name}"
+            unit = component.made_in
+            if component.made_in not in units:
+                unit = "default"
+
+            output += units[unit].format(component.name, component.amount)
 
             if needs_form:
                 output += "<form method='POST' class='right'>"
@@ -121,16 +131,16 @@ class Item(object):
                 output += "</form>"
             output += "</span>"
        
-            if component.made_in != "natural":
+            if component.made_in in production_names:
                 output += "<ul><li><code>"
-                if production_names.get(component.made_in) != None:
+                if component.made_in in production_names:
                     output += f"{production_names[component.made_in]}"
                 else:
                     output += "???"
                 output += "</code>"
 
             output += component.get_formatted()
-            if component.made_in != "natural":
+            if component.made_in in production_names:
                 output += "</li></ul>"
             output += "</li>"
         output += "</ul>"
